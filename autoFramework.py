@@ -7,7 +7,7 @@ import requests
 CONFIGURATION = "Release"
 
 
-def buildProject(target):
+def buildProject(project, target):
 
     process = subprocess.Popen("pwd", stdout=subprocess.PIPE)
     (stdoutdata, stderrdata) = process.communicate()
@@ -19,10 +19,10 @@ def buildProject(target):
     print (simulatorLibPath)
 
     process.wait()
-    buildOSCmd = 'xcodebuild -project %s.xcodeproj -target %s -sdk iphoneos -configuration %s ONLY_ACTIVE_ARCH="NO" ARCHS="armv7 armv7s arm64" VALID_ARCHS="armv7 armv7s arm64"' %(target,target,CONFIGURATION)
+    buildOSCmd = 'xcodebuild -project %s.xcodeproj -target %s -sdk iphoneos -configuration %s clean build' %(project,target,CONFIGURATION)
     process = subprocess.Popen(buildOSCmd, shell=True)
     process.wait()
-    buildSimulatorCmd = 'xcodebuild -project %s.xcodeproj -target %s -sdk iphonesimulator -configuration %s ONLY_ACTIVE_ARCH="NO"' %(target,target,CONFIGURATION)
+    buildSimulatorCmd = 'xcodebuild -project %s.xcodeproj -target %s -sdk iphonesimulator -configuration %s clean build' %(project,target,CONFIGURATION)
     process = subprocess.Popen(buildSimulatorCmd, shell=True)
     process.wait()
     cpCmd = 'cp -r %s/Release-iphoneos/%s.framework %s' %(buildDir,target,stdoutdata.strip())
@@ -45,23 +45,25 @@ def buildProject(target):
         print '\n'
 
 def xcbuild(options):
-	target = options.target
+    project = options.project
+    target = options.target
 
-	if target is None:
-		pass
-	elif target is not None:
-		buildProject(target)
+    if project is None or target is None:
+        pass
+    else:
+        buildProject(project, target)
 
 def main():
-	
-	parser = OptionParser()
-	parser.add_option("-t", "--target", help="Build the target specified by targetname. Required if building a project.", metavar="targetname")
+    
+    parser = OptionParser()
+    parser.add_option("-p", "--project", help="Build of the projectname. Required if building a project.", metavar="projectname")
+    parser.add_option("-t", "--target", help="Build the target specified by targetname. Required if building a project.", metavar="targetname")
 
-	(options, args) = parser.parse_args()
+    (options, args) = parser.parse_args()
 
-	print "options: %s, args: %s" % (options, args)
+    print "options: %s, args: %s" % (options, args)
 
-	xcbuild(options)
+    xcbuild(options)
 
 if __name__ == '__main__':
-	main()
+    main()
